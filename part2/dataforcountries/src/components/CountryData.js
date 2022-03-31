@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import Weather from './Weather';
 
 const CountryData = ({country}) => {
     const [lanList, setLanList] = useState([]);
     useEffect(()=>{
+        console.log(country);
         const lanObj = country.languages;
         const listLan = Object.keys(lanObj);
         let allLan = [];
@@ -26,7 +28,8 @@ const CountryData = ({country}) => {
                 <li>{lan}</li>
             ))}
         </ul>
-        <img src={country.flags.png}/>
+        <img src={country.flags.png} width={"200px"}/>
+        <Weather capital={country.capital[0]}/>
     </div>
   )
 }
