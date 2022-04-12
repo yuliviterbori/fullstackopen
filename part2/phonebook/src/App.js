@@ -3,6 +3,7 @@ import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
 import personsServices from './services/persons';
+import Notification from './components/Notification';
 
 const App = () => {
   const [persons, setPersons] = useState([]); 
@@ -10,7 +11,7 @@ const App = () => {
   const [newPhone, setNewPhone] = useState('')
   const [filter, setFilter] = useState('')
   const [filterPersons, setFilterPersons] = useState([])
-
+  const [notifi, setNotifi] = useState({message: null, isGood:true})
   useEffect(()=>{
     personsServices
     .getAll()
@@ -43,6 +44,10 @@ const App = () => {
         setPersons(persons.concat(response));
         setNewName("");
         setNewPhone("");
+        setNotifi({message: `Added ${response.name}`, isGood: true});
+        setTimeout(()=>{
+          setNotifi({message:null});
+        },5000)
       })
     }
   };
@@ -53,7 +58,23 @@ const App = () => {
     const confirm = window.confirm(`Are you sure to delete ${person.name}?`);
     if(confirm){
       personsServices
-      .deleteP(person.id);
+      .deleteP(person.id)
+      .then(response => {
+        setPersons(persons.filter(p=>p.id!==person.id));
+        console.log(response);
+        setNotifi({message: `Removed ${person.name}`, isGood: false});
+        setTimeout(()=>{
+          setNotifi({message:null});
+        },5000)
+      })
+      .catch(error => {
+        //console.log(error);
+        setPersons(persons.filter(p=>p.id!==person.id));
+        setNotifi({message: `Information of ${person.name} has already been removed from server`, isGood: false});
+        setTimeout(()=>{
+          setNotifi({message:null});
+        },5000)
+      });
     }
   }
   const replaceNumber = (person, newNumber) =>{
@@ -72,13 +93,17 @@ const App = () => {
         setPersons(newPersons);
         setNewName("");
         setNewPhone("");
+        setNotifi({message: `Replace number of ${response.name}`, isGood: true});
+        setTimeout(()=>{
+          setNotifi({message:null});
+        },5000)
       });
     }
   }
   return (
     <div>
       <h2>Phonebook</h2>
-      
+      <Notification message={notifi.message} isGood={notifi.isGood} />
       <Filter filter = {filter} handleFilter={e=>setFilter(e.target.value)}/>
       <h2>add a new</h2>
       <PersonForm 
