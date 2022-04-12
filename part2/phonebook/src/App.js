@@ -1,8 +1,8 @@
-import axios from 'axios';
 import { useState, useEffect } from 'react'
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
+import personsServices from './services/persons';
 
 const App = () => {
   const [persons, setPersons] = useState([]); 
@@ -12,12 +12,11 @@ const App = () => {
   const [filterPersons, setFilterPersons] = useState([])
 
   useEffect(()=>{
-    axios
-    .get("http://localhost:3001/persons")
+    personsServices
+    .getAll()
     .then(res => {
-      setPersons(res.data);
-      setFilterPersons(res.data);
-      
+      setPersons(res);
+      setFilterPersons(res);
     })
   },[])
   useEffect(()=>{
@@ -28,23 +27,54 @@ const App = () => {
   }, [persons, filter]);
   const addPerson = (event)=>{
     event.preventDefault();
-    const allNombres = persons.map(person=>person.name);
-    if(allNombres.includes(newName)){
-      window.alert(`${newName} is already added to phonebook`);
+    const ps = persons.find(e => e.name === newName);
+    console.log(ps);
+    if(ps!==undefined){
+      replaceNumber(ps,newPhone);
     }
     else{
       const newPerson = {
         name: newName,
         number: newPhone
       }
-      setPersons(persons.concat(newPerson));
-      setNewName("");
-      setNewPhone("");
+      personsServices
+      .create(newPerson)
+      .then(response => {
+        setPersons(persons.concat(response));
+        setNewName("");
+        setNewPhone("");
+      })
     }
   };
   
   const handleName = e =>setNewName(e.target.value);
   const handlePhone = e =>setNewPhone(e.target.value);
+  const handleDelete = person => {
+    const confirm = window.confirm(`Are you sure to delete ${person.name}?`);
+    if(confirm){
+      personsServices
+      .deleteP(person.id);
+    }
+  }
+  const replaceNumber = (person, newNumber) =>{
+    const confirm = window.confirm(`${person.name} is already added to phonebook, replace the old number with a new one?`);
+    if(confirm){
+      const newPerson = {
+        ...person,
+        number: newNumber
+      }
+      personsServices
+      .update(person.id, newPerson)
+      .then(response => {
+        const newPersons =persons.map((itm) => (
+          itm.name!==response.name ? itm : response
+        ));
+        setPersons(newPersons);
+        setNewName("");
+        setNewPhone("");
+      });
+    }
+  }
   return (
     <div>
       <h2>Phonebook</h2>
@@ -58,7 +88,7 @@ const App = () => {
         handleName={handleName}
         handlePhone={handlePhone}/>
       <h2>Numbers</h2>
-      <Persons filterPersons = {filterPersons}/>
+      <Persons filterPersons = {filterPersons} handleDelete = {handleDelete}/>
     </div>
   )
 }

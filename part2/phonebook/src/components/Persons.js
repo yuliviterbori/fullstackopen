@@ -1,10 +1,10 @@
 import React from 'react'
-const Person = ({name, number}) => (<li>{name} {number}</li>)
-const Persons = ({filterPersons}) => {
+const Person = ({person, handleDelete}) => (<li>{person.name} {person.number} <button onClick={()=>handleDelete(person)}>delete</button></li>)
+const Persons = ({filterPersons, handleDelete}) => {
   return (
     <ul>
         {filterPersons.map((person)=>(
-          <Person key={person.name} name={person.name} number={person.number}/>
+          <Person key={person.name} person={person} handleDelete={handleDelete} />
         ))}
     </ul>
   )
